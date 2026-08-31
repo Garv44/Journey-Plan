@@ -1,0 +1,116 @@
+/* ==========================================================================
+   Modernist design system — ported from the Claude Design project
+   (_ds/modernist styles.css) plus the Rep Mobile App page styles.
+   Sharp corners, Archivo, ink #201e1d on paper #f3f2f2, single red accent.
+   ========================================================================== */
+
+:root {
+  --color-bg: #f3f2f2;        /* paper / phone surface */
+  --color-page: #e8e6e4;      /* desk behind the phone */
+  --color-surface: #eae9e9;
+  --color-ink: #201e1d;       /* text / primary ink */
+  --color-accent: #ec3013;    /* single red accent */
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-mute: #8a8582;      /* muted labels */
+  --color-line: #d6d3d1;      /* hairline dividers */
+  --font: "Archivo", system-ui, -apple-system, sans-serif;
+  --mono: "Archivo", ui-monospace, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--color-accent); }
+a:hover { color: var(--color-accent-600); }
+
+/* — buttons (from the Modernist system) — */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-ink);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 8px 14px;
+  border-radius: 0;
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--color-accent); color: var(--color-bg); }
+.btn-primary:hover { background: var(--color-accent-600); }
+.btn-primary:active { background: var(--color-accent-700); }
+.btn-secondary { border-color: var(--color-line); }
+.btn-secondary:hover { background: rgba(32, 30, 29, 0.07); }
+.btn-ghost { color: var(--color-accent); padding-inline: 4px; }
+
+/* — inputs — */
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-ink);
+  caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0;
+  outline: none;
+}
+.input:focus-visible { border-color: var(--color-accent); }
+
+/* — MapLibre theming to match the mono palette — */
+.maplibregl-canvas { filter: saturate(0.18) contrast(1.06); }
+.maplibregl-ctrl-attrib {
+  font: 400 8px/1.4 var(--mono) !important;
+  border-radius: 0 !important;
+  background: rgba(243, 242, 242, 0.86) !important;
+}
+.maplibregl-ctrl-attrib-button { border-radius: 0 !important; }
+.maplibregl-popup-content {
+  border-radius: 0;
+  border: 1px solid var(--color-ink);
+  box-shadow: none;
+  padding: 9px 11px;
+  background: var(--color-bg);
+}
+.maplibregl-popup-tip { border-top-color: var(--color-ink); }
+.maplibregl-ctrl-top-right { z-index: 700; margin: 0; }
+.maplibregl-ctrl-top-right .maplibregl-ctrl { margin: 8px 8px 0 0; }
+.maplibregl-ctrl-attrib.maplibregl-compact { min-height: 20px; }
+
+/* — animated shop-marker keyframes (from the page head) — */
+@keyframes shop-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.72); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes shop-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes ring-pulse {
+  0%   { transform: scale(0.7); opacity: 0.9; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+@keyframes live-pulse {
+  0%   { transform: scale(0.6); opacity: 0.32; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+/* thin scrollbars inside the phone */
+.phone-scroll::-webkit-scrollbar { width: 0; height: 0; }

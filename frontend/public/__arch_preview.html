@@ -1,0 +1,381 @@
+<title>BeatPlan Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --ground: #e8e6e4;
+    --paper: #f3f2f2;
+    --ext: #eceae7;
+    --ink: #201e1d;
+    --mute: #6b6663;
+    --faint: #8a8582;
+    --line: #d6d3d1;
+    --accent: #ec3013;
+    --accent-ink: #ffffff;
+    --shadow: 0 1px 2px rgba(32,30,29,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #171615;
+      --paper: #232120;
+      --ext: #2b2927;
+      --ink: #f3f2f2;
+      --mute: #b3aeab;
+      --faint: #8a8582;
+      --line: #3a3735;
+      --accent: #ff5a3c;
+      --accent-ink: #171615;
+      --shadow: 0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #171615;
+    --paper: #232120;
+    --ext: #2b2927;
+    --ink: #f3f2f2;
+    --mute: #b3aeab;
+    --faint: #8a8582;
+    --line: #3a3735;
+    --accent: #ff5a3c;
+    --accent-ink: #171615;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Archivo", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 72px; }
+
+  /* header */
+  .eyebrow {
+    display: inline-flex; gap: 10px; align-items: baseline;
+    font: 600 10px/1 "Archivo", monospace; letter-spacing: .16em; text-transform: uppercase;
+  }
+  .eyebrow .tag { background: var(--ink); color: var(--ground); padding: 5px 8px; }
+  .eyebrow .accent { color: var(--accent); }
+  h1 {
+    margin: 16px 0 0; font-weight: 700; font-size: clamp(30px, 5vw, 46px);
+    letter-spacing: -.022em; line-height: 1.03; text-wrap: balance;
+  }
+  .rule { height: 2px; background: var(--ink); margin: 16px 0; }
+  .lede { margin: 0; max-width: 68ch; font-size: 15px; color: var(--mute); text-wrap: pretty; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;
+  }
+  .chip {
+    font: 600 10px/1 "Archivo", monospace; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--mute); border: 1px solid var(--line); background: var(--paper);
+    padding: 7px 9px;
+  }
+  .chip.hot { color: var(--accent); border-color: var(--accent); }
+
+  section { margin-top: 44px; }
+  .sec-label {
+    font: 600 10px/1 "Archivo", monospace; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 10px;
+  }
+
+  /* diagram */
+  figure { margin: 0; }
+  .figbox {
+    background: var(--paper); border: 2px solid var(--ink); padding: 20px 18px 8px;
+    overflow-x: auto;
+  }
+  svg.diagram { display: block; width: 100%; height: auto; min-width: 720px; color: var(--ink); }
+  svg.diagram text { font-family: "Archivo", system-ui, sans-serif; fill: var(--ink); }
+  .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+  .store { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; }
+  .ext  { fill: var(--ext); stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .subbox { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+  .frame { fill: none; stroke: var(--ink); stroke-width: 2; }
+  .htab  { fill: var(--ink); }
+  .htab-t { fill: var(--ground); font: 700 11px/1 "Archivo", sans-serif; letter-spacing: .12em; }
+  .t-title { font-weight: 700; }
+  .t-sub { fill: var(--mute); }
+  .t-faint { fill: var(--faint); }
+  .flow { stroke: var(--ink); stroke-width: 2; fill: none; }
+  .flow-lbl { fill: var(--mute); font: 600 9.5px/1 "Archivo", monospace; letter-spacing: .06em; }
+  .head { fill: var(--ink); }
+  .gap { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+  .gap-t { fill: var(--accent); font-weight: 700; letter-spacing: .18em; }
+  figcaption { margin-top: 14px; font-size: 12.5px; color: var(--mute); max-width: 70ch; }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  /* stack cards */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } svg.diagram { min-width: 640px; } }
+  .card { background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--shadow); }
+  .card > header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    background: var(--ink); color: var(--ground); padding: 12px 14px;
+  }
+  .card > header .name { font: 700 14px/1 "Archivo", sans-serif; letter-spacing: .01em; }
+  .card > header .env { font: 600 9px/1 "Archivo", monospace; letter-spacing: .1em; text-transform: uppercase; opacity: .72; }
+  .layer {
+    padding: 11px 14px; border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 74px 1fr; gap: 12px; align-items: start;
+  }
+  .layer:last-child { border-bottom: 0; }
+  .layer .k { font: 600 9px/1.3 "Archivo", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); padding-top: 3px; }
+  .rowitem { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px; }
+  .rowitem + .rowitem { margin-top: 7px; }
+  .lib { font: 600 13px/1.2 "Archivo", sans-serif; color: var(--ink); }
+  .ver {
+    font: 600 11px/1 ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent); border: 1px solid var(--line); padding: 3px 5px; white-space: nowrap;
+  }
+  .role { font-size: 12px; color: var(--mute); }
+  .ext-tag { color: var(--faint); border-color: var(--line); }
+
+  .note {
+    margin-top: 22px; border-left: 3px solid var(--accent); background: var(--paper);
+    padding: 13px 15px; font-size: 13px; color: var(--mute); max-width: 78ch;
+  }
+  .note b { color: var(--ink); font-weight: 600; }
+  footer { margin-top: 40px; font: 400 11.5px/1.6 "Archivo", monospace; color: var(--faint); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow"><span class="tag">As-built</span><span class="accent">Journey Plan · BeatPlan prototype</span></div>
+    <h1>Architecture &amp; tech stack, as built</h1>
+    <div class="rule"></div>
+    <p class="lede">Everything standing today — nothing planned or upcoming. Two independent halves: a Python engine that ingests and tiers outlets into PostgreSQL, and a React rep app that runs entirely in the browser off bundled sample data and free CDNs. They are not yet wired to each other.</p>
+    <div class="meta">
+      <span class="chip">2 subsystems</span>
+      <span class="chip">Prototype · Dadar, Mumbai</span>
+      <span class="chip hot">No API layer yet</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-label">System map</div>
+    <figure>
+      <div class="figbox">
+        <svg class="diagram" viewBox="0 0 1040 588" role="img"
+             aria-label="Two independent subsystems. Backend: the OSM Overpass API feeds a Python 3.11 CLI pipeline — ingestion, then a tiering engine, then SQLAlchemy — which writes to PostgreSQL 18. Frontend: a React 18 single-page app served by Vite draws its map from OpenFreeMap tiles through MapLibre GL and its fonts from Google Fonts, using bundled sample data and client-side state only. A dashed red divider marks that the backend and frontend are not yet connected — there is no API between them.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="head" d="M0 0 L10 5 L0 10 z"></path>
+            </marker>
+          </defs>
+
+          <!-- ============ BACKEND ============ -->
+          <rect class="frame" x="40" y="104" width="336" height="452"></rect>
+          <rect class="htab" x="40" y="104" width="336" height="26"></rect>
+          <text class="htab-t" x="53" y="121">BACKEND · PYTHON 3.11 CLI</text>
+
+          <!-- external source -->
+          <rect class="ext" x="96" y="44" width="224" height="46"></rect>
+          <text class="t-title" x="208" y="65" text-anchor="middle" font-size="13">OSM Overpass API</text>
+          <text class="t-faint" x="208" y="80" text-anchor="middle" font-size="9.5">external · overpass-api.de</text>
+
+          <!-- ingestion -->
+          <rect class="box" x="68" y="146" width="280" height="58"></rect>
+          <text class="t-title" x="208" y="171" text-anchor="middle" font-size="13.5">Ingestion</text>
+          <text class="t-sub" x="208" y="189" text-anchor="middle" font-size="11">requests → osm.py</text>
+
+          <!-- tiering -->
+          <rect class="box" x="68" y="228" width="280" height="58"></rect>
+          <text class="t-title" x="208" y="253" text-anchor="middle" font-size="13.5">Tiering engine</text>
+          <text class="t-sub" x="208" y="271" text-anchor="middle" font-size="11">numpy · pandas · rules.yaml</text>
+
+          <!-- orm -->
+          <rect class="box" x="68" y="310" width="280" height="58"></rect>
+          <text class="t-title" x="208" y="335" text-anchor="middle" font-size="13.5">SQLAlchemy 2.0 ORM</text>
+          <text class="t-sub" x="208" y="353" text-anchor="middle" font-size="11">psycopg2 driver</text>
+
+          <!-- datastore -->
+          <rect class="store" x="68" y="398" width="280" height="74"></rect>
+          <text class="t-title" x="208" y="428" text-anchor="middle" font-size="15">PostgreSQL 18</text>
+          <text class="t-sub" x="208" y="447" text-anchor="middle" font-size="11">database · “journey”</text>
+          <text class="t-faint" x="208" y="463" text-anchor="middle" font-size="10">no PostGIS</text>
+
+          <!-- flows -->
+          <line class="flow" x1="208" y1="90"  x2="208" y2="144" marker-end="url(#ar)"></line>
+          <text class="flow-lbl" x="216" y="122">HTTPS · GET</text>
+          <line class="flow" x1="208" y1="204" x2="208" y2="226" marker-end="url(#ar)"></line>
+          <line class="flow" x1="208" y1="286" x2="208" y2="308" marker-end="url(#ar)"></line>
+          <line class="flow" x1="208" y1="368" x2="208" y2="396" marker-end="url(#ar)"></line>
+          <text class="flow-lbl" x="216" y="386">writes</text>
+
+          <text class="t-faint" x="53" y="502" font-size="10.5">Config: .env (dotenv) · rules.yaml (PyYAML)</text>
+          <text class="t-faint" x="53" y="518" font-size="10.5">Scripts: init_db · run_ingest · run_tiering · report</text>
+          <text class="t-faint" x="53" y="534" font-size="10.5">Tests: pytest</text>
+
+          <!-- ============ GAP ============ -->
+          <line class="gap" x1="468" y1="120" x2="468" y2="540"></line>
+          <text class="gap-t" x="468" y="330" text-anchor="middle" font-size="12"
+                transform="rotate(-90 468 330)">NOT YET CONNECTED · NO API LAYER</text>
+
+          <!-- ============ FRONTEND ============ -->
+          <rect class="frame" x="560" y="104" width="336" height="452"></rect>
+          <rect class="htab" x="560" y="104" width="336" height="26"></rect>
+          <text class="htab-t" x="573" y="121">FRONTEND · REACT 18 / VITE 5</text>
+
+          <!-- react SPA -->
+          <rect class="box" x="584" y="146" width="288" height="104"></rect>
+          <text class="t-title" x="728" y="172" text-anchor="middle" font-size="14">React 18 SPA</text>
+          <text class="t-sub" x="728" y="190" text-anchor="middle" font-size="11">single-page · client-side state only</text>
+          <text class="t-faint" x="728" y="212" text-anchor="middle" font-size="10.5">Auth · Plan · Map</text>
+          <text class="t-faint" x="728" y="228" text-anchor="middle" font-size="10.5">Visit · History · Profile</text>
+
+          <!-- state -->
+          <rect class="subbox" x="584" y="274" width="138" height="62"></rect>
+          <text class="t-title" x="653" y="298" text-anchor="middle" font-size="12">App state</text>
+          <text class="t-sub" x="653" y="315" text-anchor="middle" font-size="9.5">outlets.js · creds.txt</text>
+
+          <!-- maplibre -->
+          <rect class="subbox" x="734" y="274" width="138" height="62"></rect>
+          <text class="t-title" x="803" y="298" text-anchor="middle" font-size="12">MapLibre GL 4.7</text>
+          <text class="t-sub" x="803" y="315" text-anchor="middle" font-size="10">vector map</text>
+
+          <!-- tooling foundation -->
+          <rect class="box" x="584" y="360" width="288" height="54"></rect>
+          <text class="t-title" x="728" y="383" text-anchor="middle" font-size="12.5">Vite 5 dev server · esbuild bundler</text>
+          <text class="t-sub" x="728" y="400" text-anchor="middle" font-size="10">@vitejs/plugin-react</text>
+
+          <!-- external services (right) -->
+          <rect class="ext" x="912" y="150" width="116" height="46"></rect>
+          <text class="t-title" x="970" y="170" text-anchor="middle" font-size="11.5">Google Fonts</text>
+          <text class="t-faint" x="970" y="185" text-anchor="middle" font-size="9.5">Archivo</text>
+
+          <rect class="ext" x="912" y="282" width="116" height="46"></rect>
+          <text class="t-title" x="970" y="302" text-anchor="middle" font-size="11.5">OpenFreeMap</text>
+          <text class="t-faint" x="970" y="317" text-anchor="middle" font-size="9.5">vector tiles</text>
+
+          <!-- frontend flows -->
+          <line class="flow" x1="910" y1="173" x2="874" y2="173" marker-end="url(#ar)"></line>
+          <text class="flow-lbl" x="892" y="166" text-anchor="middle">fonts</text>
+          <line class="flow" x1="910" y1="305" x2="874" y2="305" marker-end="url(#ar)"></line>
+          <text class="flow-lbl" x="892" y="298" text-anchor="middle">tiles</text>
+          <line class="flow" x1="653" y1="250" x2="653" y2="272" marker-end="url(#ar)"></line>
+          <text class="flow-lbl" x="661" y="266">data</text>
+          <line class="flow" x1="803" y1="250" x2="803" y2="272" marker-end="url(#ar)"></line>
+          <text class="flow-lbl" x="811" y="266">map</text>
+
+          <text class="t-faint" x="573" y="444" font-size="10.5">Design system: Modernist CSS (Archivo)</text>
+          <text class="t-faint" x="573" y="460" font-size="10.5">Dev port :5173 · no backend calls — sample data only</text>
+        </svg>
+      </div>
+      <figcaption>
+        One system, two disconnected halves. The <b>backend</b> pulls outlets from the OSM Overpass API and runs a Python CLI pipeline (ingest → tier → persist) into PostgreSQL. The <b>frontend</b> is a React SPA that renders a MapLibre map from free OpenFreeMap tiles and loads Archivo from Google Fonts, driven entirely by bundled sample data and in-browser state. The red divider marks the real gap today: <b>no API connects them</b> — the 173 tiered outlets in Postgres are not what the app displays.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="sec-label">Stack detail · exact versions</div>
+    <div class="cards">
+
+      <div class="card">
+        <header><span class="name">Backend — Python engine</span><span class="env">local CLI</span></header>
+        <div class="layer">
+          <div class="k">Runtime</div>
+          <div>
+            <div class="rowitem"><span class="lib">Python</span><span class="ver">3.11</span><span class="role">rule engine + ingestion</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Data</div>
+          <div>
+            <div class="rowitem"><span class="lib">SQLAlchemy</span><span class="ver">&gt;=2.0,&lt;2.1</span><span class="role">ORM / models</span></div>
+            <div class="rowitem"><span class="lib">psycopg2-binary</span><span class="ver">&gt;=2.9</span><span class="role">Postgres driver</span></div>
+            <div class="rowitem"><span class="lib">PostgreSQL</span><span class="ver">18</span><span class="role">db “journey” · no PostGIS</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Compute</div>
+          <div>
+            <div class="rowitem"><span class="lib">numpy</span><span class="ver">&gt;=1.24</span><span class="role">synthetic sales</span></div>
+            <div class="rowitem"><span class="lib">pandas</span><span class="ver">&gt;=2.0</span><span class="role">percentile tiering</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Config</div>
+          <div>
+            <div class="rowitem"><span class="lib">python-dotenv</span><span class="ver">&gt;=1.0</span><span class="role">.env settings</span></div>
+            <div class="rowitem"><span class="lib">PyYAML</span><span class="ver">&gt;=6.0</span><span class="role">rules.yaml tables</span></div>
+            <div class="rowitem"><span class="lib">requests</span><span class="ver">&gt;=2.31</span><span class="role">Overpass HTTP</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">External</div>
+          <div>
+            <div class="rowitem"><span class="lib">OSM Overpass API</span><span class="ver ext-tag">HTTP</span><span class="role">outlet source</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Tests</div>
+          <div>
+            <div class="rowitem"><span class="lib">pytest</span><span class="ver ext-tag">6 tests</span><span class="role">rule-engine units</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><span class="name">Frontend — Rep mobile app</span><span class="env">browser :5173</span></header>
+        <div class="layer">
+          <div class="k">Runtime</div>
+          <div>
+            <div class="rowitem"><span class="lib">Node.js</span><span class="ver">24 (&gt;=18)</span><span class="role">dev / build host</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Build</div>
+          <div>
+            <div class="rowitem"><span class="lib">Vite</span><span class="ver">^5.4</span><span class="role">dev server + bundler</span></div>
+            <div class="rowitem"><span class="lib">@vitejs/plugin-react</span><span class="ver">^4.3</span><span class="role">JSX / Fast Refresh</span></div>
+            <div class="rowitem"><span class="lib">esbuild</span><span class="ver">0.21</span><span class="role">transpile (via Vite)</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">UI</div>
+          <div>
+            <div class="rowitem"><span class="lib">React</span><span class="ver">^18.3</span><span class="role">SPA · 6 screens</span></div>
+            <div class="rowitem"><span class="lib">react-dom</span><span class="ver">^18.3</span><span class="role">renderer</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Map</div>
+          <div>
+            <div class="rowitem"><span class="lib">maplibre-gl</span><span class="ver">^4.7</span><span class="role">vector map render</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">Data</div>
+          <div>
+            <div class="rowitem"><span class="lib">outlets.js</span><span class="ver ext-tag">bundled</span><span class="role">10 sample outlets</span></div>
+            <div class="rowitem"><span class="lib">test-credentials.txt</span><span class="ver ext-tag">?raw</span><span class="role">login prefill</span></div>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">External</div>
+          <div>
+            <div class="rowitem"><span class="lib">OpenFreeMap</span><span class="ver ext-tag">tiles</span><span class="role">positron basemap</span></div>
+            <div class="rowitem"><span class="lib">Google Fonts</span><span class="ver ext-tag">Archivo</span><span class="role">typeface</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <b>The gap is the headline.</b> Backend and frontend share no runtime link — no HTTP API, no shared database access from the browser. The backend’s PostgreSQL holds 173 real tiered Dadar outlets; the app renders 10 hardcoded samples from <b>outlets.js</b>. Wiring an API between them is the first integration step (not shown — not built).
+    </div>
+  </section>
+
+  <footer>
+    As-built 2026-08-20 · light + dark aware · every item above exists in the repo today
+  </footer>
+
+</div>

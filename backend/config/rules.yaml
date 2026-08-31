@@ -1,0 +1,49 @@
+# =============================================================================
+# Outlet Tiering & Visit Frequency rules (configurable)
+# Source of truth for FR-1 .. FR-4 of the Outlet Tiering requirement doc.
+# Every table here is a "starting default" and is expected to be tuned once
+# real data / stakeholder input is available.
+# =============================================================================
+
+# FR-1.1 — Default Size Mapping: OSM shop/amenity type -> default Size Tag.
+# Keys are matched as "<osm_key>=<osm_value>" (e.g. shop=convenience).
+# Anything not listed falls back to `size_default` below (safe default).
+size_mapping:
+  "shop=convenience": Small
+  "shop=kiosk": Small
+  "shop=grocery": Medium
+  "shop=greengrocer": Medium
+  "shop=chemist": Medium
+  "shop=supermarket": Large
+  "shop=department_store": Large
+
+# Safe default for unmapped / unknown OSM types (FR-1.1)
+size_default: Small
+
+# FR-2.1 / FR-2.2 — Simulated monthly sales range (INR) per Size Tag.
+# A value is drawn per outlet within [min, max] with randomized variance.
+simulated_sales_ranges:
+  Small:  { min: 15000,  max: 60000 }
+  Medium: { min: 50000,  max: 150000 }
+  Large:  { min: 150000, max: 500000 }
+
+# FR-2.3 — Sales Performance bands are percentile ranks WITHIN the outlet's
+# own Size Tag group. Cut points are given as upper-bound percentiles (0..1).
+# Bottom third -> Low, middle third -> Medium, top third -> High.
+sales_performance_bands:
+  Low:    { max_percentile: 0.3333 }
+  Medium: { max_percentile: 0.6667 }
+  High:   { max_percentile: 1.0 }
+
+# FR-3.1 — Tier Assignment Matrix: tier[size][sales_performance_band]
+tier_matrix:
+  Large:  { Low: B, Medium: A, High: A }
+  Medium: { Low: C, Medium: B, High: A }
+  Small:  { Low: C, Medium: C, High: B }
+
+# FR-4.1 — Tier -> Visit Frequency mapping.
+# `per_week` is the numeric norm passed to the Beat Plan module.
+visit_frequency:
+  A: { label: "2x per week",   per_week: 2.0 }
+  B: { label: "1x per week",   per_week: 1.0 }
+  C: { label: "1x per 2 weeks", per_week: 0.5 }
